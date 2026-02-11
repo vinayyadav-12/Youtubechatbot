@@ -3,7 +3,7 @@ name = "youtubechatbot"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "faiss-cpu>=1.13.2",
     "langchain>=1.2.9",
@@ -13,6 +13,7 @@ dependencies = [
     "langchain-huggingface>=1.2.0",
     "python-dotenv>=1.2.1",
     "sentence-transformers>=5.2.2",
+    "streamlit>=1.54.0",
     "tiktoken>=0.12.0",
     "youtube-transcript-api>=1.2.4",
 ]

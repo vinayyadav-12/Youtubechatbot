@@ -1,19 +1,58 @@
-from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_groq import ChatGroq
-from sentence_transformers import SentenceTransformer
-from dotenv import load_dotenv
+import streamlit as st
+from utils import load_transcript, create_vectorstore, answer_question
 
-load_dotenv()
 
-#Document ingestion
-youtube_id = "6ECKffxXCP0"
+st.set_page_config(
+    page_title="YouTube RAG Chatbot",
+    layout="wide"
+)
 
-try:
-    transcript = YouTubeTranscriptApi.get_transcript(youtube_id, languages=['en'])
-    transcript_text = " ".join([entry['text'] for entry in transcript])
-except TranscriptsDisabled:
-    print("Transcripts are disabled for this video.")
-    transcript_text = ""
+st.title("🎥 YouTube Video Chatbot (RAG)")
+st.caption("Ask questions directly from YouTube videos")
 
-print(transcript_text)
+with st.sidebar:
+    st.header("Video Input")
+    video_id = st.text_input(
+        "Enter YouTube Video ID",
+        placeholder="nAmC7SoVLd8"
+    )
+
+    process_btn = st.button("Process Video")
+    
+if "vectorstore" not in st.session_state:
+    st.session_state.vectorstore = None
+
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+    
+if process_btn and video_id:
+    with st.spinner("Fetching transcript & building index..."):
+        transcript_text = load_transcript(video_id)
+
+        if not transcript_text:
+            st.error("Transcript not available for this video.")
+        else:
+            st.session_state.vectorstore = create_vectorstore(transcript_text)
+            st.success("Video processed successfully!")
+            
+if st.session_state.vectorstore:
+    st.subheader("💬 Ask Questions")
+
+    user_question = st.text_input("Your question")
+
+    if user_question:
+        with st.spinner("Thinking..."):
+            answer = answer_question(
+                st.session_state.vectorstore,
+                user_question
+            )
+
+        st.session_state.chat_history.append(
+            (user_question, answer)
+        )
+
+    # Display chat history
+    for q, a in reversed(st.session_state.chat_history):
+        st.markdown(f"**🧑 You:** {q}")
+        st.markdown(f"**🤖 Bot:** {a}")
+        st.markdown("---")

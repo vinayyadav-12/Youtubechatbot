@@ -8,4 +8,4 @@ faiss-cpu
 tiktoken
 langchain-huggingface
 sentence-transformers
-langchain-vectorstores
+streamlit
